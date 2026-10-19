@@ -187,6 +187,7 @@
     const active = new Set();
     let E = null;                                           // elementos do diagrama atual (por serviço)
     let core = null, halo = null, shieldR = 0, F = null;
+    let readyEl = null, readyPrev = null, readyT = 0;
     let mode = 'edit', tlFin = null, snapping = false, bbTween = null, bbEl = null;                         // modo da finalização: 'edit' | 'running' | 'final'
     const el = (tag, cls, attrs) => { const n = document.createElementNS(NS, tag); if (cls) n.setAttribute('class', cls); for (const k in attrs || {}) n.setAttribute(k, attrs[k]); return n; };
     const hexPts = (cx, cy, r) => [0, 1, 2, 3, 4, 5].map((k) => { const a = (k * 60 + 30) * Math.PI / 180; return (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1); }).join(' ');
@@ -321,10 +322,17 @@
       if (!window.gsap || !actionsRow || !sendBtn) return;
       btnFin = document.createElement('button');
       btnFin.type = 'button'; btnFin.className = 'btn btn--red cb-finalize'; btnFin.id = 'cbFinalize';
-      btnFin.textContent = 'Finalizar proteção'; btnFin.setAttribute('aria-describedby', 'cbFinHint');
+      btnFin.textContent = 'Finalizar proteção'; btnFin.setAttribute('aria-describedby', 'cbReady cbFinHint');
       hintEl = document.createElement('p');
       hintEl.id = 'cbFinHint'; hintEl.className = 'cb-final-hint'; hintEl.setAttribute('role', 'status');
+      // indicador contextual de prontidão (acima do botão; não é região live para evitar anúncios repetidos)
+      readyEl = document.createElement('div');
+      readyEl.className = 'cb-ready'; readyEl.id = 'cbReady';
+      readyEl.innerHTML = '<svg class="cb-ready__ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5l-8-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="var(--red-strong)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '<span class="cb-ready__txt"><b class="cb-ready__t"></b><small class="cb-ready__s"></small></span>';
+      readyEl.addEventListener('animationend', () => readyEl.classList.remove('is-scan'));
       actionsRow.parentNode.insertBefore(btnFin, actionsRow); actionsRow.parentNode.insertBefore(hintEl, actionsRow);
+      btnFin.parentNode.insertBefore(readyEl, btnFin);
 
       doneEl = document.createElement('div');
       doneEl.className = 'cb-arch__done'; doneEl.hidden = true;
@@ -353,6 +361,21 @@
       btnFin.setAttribute('aria-disabled', String(empty));
       btnFin.classList.toggle('is-idle', empty);
       if (!empty) hintEl.textContent = '';
+      renderReady();
+    }
+
+    // Indicador: Estado A (sem serviços), B (pronto), oculto durante a montagem e depois de concluída. Varredura única só na transição 0 → ≥1.
+    function renderReady() {
+      if (!readyEl) return;
+      const n = active.size, show = mode === 'edit';
+      readyEl.hidden = !show;
+      if (!show) return;
+      const ready = n > 0;
+      readyEl.classList.toggle('is-ready', ready);
+      readyEl.querySelector('.cb-ready__t').textContent = ready ? 'Pronto para finalizar' : 'Selecione pelo menos um serviço para continuar.';
+      readyEl.querySelector('.cb-ready__s').textContent = ready ? 'Finalize para visualizar seu escudo de proteção sendo montado.' : '';
+      if (readyPrev === 0 && ready && !reduce) { readyEl.classList.remove('is-scan'); void readyEl.offsetWidth; readyEl.classList.add('is-scan'); clearTimeout(readyT); readyT = setTimeout(() => readyEl.classList.remove('is-scan'), 900); }
+      readyPrev = n;
     }
 
     function buildFinalTimeline() {
@@ -428,7 +451,7 @@
       if (mode !== 'edit') return;                          // sem montagem simultânea e sem cliques duplicados
       if (!active.size) { hintEl.textContent = 'Selecione pelo menos um módulo para finalizar sua proteção.'; return; }
       hintEl.textContent = '';
-      mode = 'running';
+      mode = 'running'; renderReady();
       btnFin.setAttribute('aria-disabled', 'true'); btnFin.setAttribute('aria-busy', 'true'); btnFin.classList.add('is-idle');
       window.gsap.killTweensOf([halo, core, F.hex, F.glyph]);
       const r = fig.getBoundingClientRect();
@@ -442,7 +465,7 @@
       const hadFocus = document.activeElement === btnFin;
       mode = 'final';
       fig.classList.remove('is-assembling'); fig.classList.add('is-final');
-      btnFin.hidden = true; btnFin.removeAttribute('aria-busy');
+      btnFin.hidden = true; btnFin.removeAttribute('aria-busy'); renderReady();
       doneEl.hidden = false;
       liveEl.textContent = 'Sua arquitetura está pronta. Esta é a combinação de serviços selecionada, não uma proteção já implantada.';
       if (hadFocus) doneEl.querySelector('[data-act="send"]').focus({ preventScroll: true });

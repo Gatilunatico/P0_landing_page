@@ -583,7 +583,7 @@ form.addEventListener('submit', (e) => {
   }
 
   onReady(() => {
-    if (reduceMotion || !window.gsap) return;
+    if (reduceMotion || !window.gsap) { const pl = document.querySelector('#pacotes .plans'); if (pl) pl.classList.add('pw-done'); return; }      // movimento reduzido: só o destaque final estático
     try { initializeProcessModules(); } catch (e) { console.warn('[Sentinela] Módulos do processo indisponíveis.', e); }
     try { initializePricingWave(); } catch (e) { console.warn('[Sentinela] Expansão dos pacotes indisponível.', e); }
   });
@@ -902,8 +902,8 @@ form.addEventListener('submit', (e) => {
   }
 
   /* ==========================================================================
-     ANIMAÇÃO 2 — EXPANSÃO DE ENERGIA A PARTIR DO PROFISSIONAL (seção "Escolha seu nível de proteção")
-     ponto de energia → anéis circulares → reação dos laterais na chegada da onda → ápice → retorno ao centro
+     ANIMAÇÃO 2 — ENERGIZAÇÃO SEQUENCIAL DOS PACOTES (seção "Escolha seu nível de proteção")
+     PROTOCOLO DE ENERGIZAÇÃO: traço percorrendo o perímetro de Essencial → Profissional → Enterprise → destaque final do Profissional
      ========================================================================== */
   function initializePricingWave() {
     const wrap = document.querySelector('#pacotes .plans');
@@ -911,189 +911,86 @@ form.addEventListener('submit', (e) => {
     const plans = Array.from(wrap.querySelectorAll('.plan'));
     if (plans.length !== 3) return;
     const pro = wrap.querySelector('.plan--featured') || plans[1];
-    const sides = plans.filter((p) => p !== pro);
-    const VARS = ['--pw-angle', '--pw-ring', '--pw-fill', '--pw-glow', '--pw-peak', '--pw-bg', '--pw-lift', '--pw-zoom',
-      '--pw-shine', '--pw-shineo', '--pw-price', '--pw-pglint', '--pw-btn', '--pw-ico', '--pw-core'];
+    const VARS = ['--pw-ring', '--pw-fill', '--pw-glow', '--pw-peak', '--pw-bg', '--pw-lift', '--pw-zoom', '--pw-price', '--pw-ico'];
     const small = matchMedia('(max-width: 720px)').matches;
-    const PAD = 90;
-    let running = false, wave = null, cv = null, ctx = null, geo = null;
-    let dpr = 1, cw = 0, ch = 0, padX = PAD, lastT = 0;
-
-    // estado visual desenhado no canvas
-    const S = { rings: [{ r: 0, a: 0 }, { r: 0, a: 0 }, { r: 0, a: 0 }], back: [{ r: 0, a: 0 }, { r: 0, a: 0 }], pulse: { r: 0, a: 0 } };
-    const particles = makeParticles(small ? 50 : 160), blooms = [];
+    const NSVG = 'http://www.w3.org/2000/svg';
+    let running = false, wave = null, enterCall = null;
+    let traces = [];
 
     wrap.classList.add('pw-ready');
 
-    // devolve cada card exatamente ao estilo original (nada fica gravado)
+    // traço vermelho que percorre o perímetro de um card (SVG: retângulo com cantos do card, stroke-dasharray/dashoffset)
+    function makeTrace(card) {
+      const w = card.offsetWidth, h = card.offsetHeight, r = parseFloat(getComputedStyle(card).borderTopLeftRadius) || 14;
+      const svg = document.createElementNS(NSVG, 'svg');
+      svg.setAttribute('class', 'pw-trace'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      const mk = (cls, dash) => {
+        const el = document.createElementNS(NSVG, 'rect');
+        el.setAttribute('class', 'pw-t ' + cls); el.setAttribute('x', 0.75); el.setAttribute('y', 0.75);
+        el.setAttribute('width', w - 1.5); el.setAttribute('height', h - 1.5); el.setAttribute('rx', Math.max(0, r - 0.75)); el.setAttribute('pathLength', 1);
+        if (dash) { el.style.strokeDasharray = dash + ' 1'; el.style.strokeDashoffset = dash; }
+        svg.appendChild(el); return el;
+      };
+      const t = { svg, base: mk('pw-t--base'), tail: mk('pw-t--tail', 0.42), head: mk('pw-t--head', 0.12) };
+      card.appendChild(svg); return t;
+    }
+
+    // devolve cada card exatamente ao estilo original (nada fica gravado); o destaque final do Profissional vem da classe pw-done
     function resetPricingWave() {
       if (wave) { wave.kill(); wave = null; }
-      gsap.ticker.remove(drawFrame);
       running = false;
       gsap.killTweensOf(plans);
+      traces.forEach((t) => { gsap.killTweensOf([t.base, t.tail, t.head]); t.svg.remove(); });
+      traces = [];
       plans.forEach((p) => { p.classList.remove('pw-active'); VARS.forEach((v) => p.style.removeProperty(v)); });
-      if (cv) { cv.remove(); cv = null; ctx = null; }
-      particles.clear(); blooms.length = 0;
       wrap.classList.remove('pw-ready');
-      wrap.removeEventListener('pointerdown', resetPricingWave);
-      wrap.removeEventListener('keydown', resetPricingWave);
     }
-
-    function sizeCanvas() {
-      dpr = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2);
-      const r = wrap.getBoundingClientRect(), vw = document.documentElement.clientWidth;
-      padX = Math.max(10, Math.min(PAD, r.left - 1, vw - r.right - 1));                // sem rolagem horizontal
-      cw = wrap.offsetWidth + padX * 2; ch = wrap.offsetHeight + PAD * 2;
-      cv.style.left = -padX + 'px'; cv.style.top = -PAD + 'px';
-      cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
-      cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, padX * dpr, PAD * dpr);
-    }
-    // geometria real: centro do Profissional e distância até cada card lateral (funciona lado a lado ou empilhado)
-    function buildGeometry() {
-      const rect = (p) => ({ l: p.offsetLeft, t: p.offsetTop, r: p.offsetLeft + p.offsetWidth, b: p.offsetTop + p.offsetHeight });
-      const R0 = rect(pro), cx = (R0.l + R0.r) / 2, cy = (R0.t + R0.b) / 2;
-      const near = (R) => Math.hypot(Math.max(R.l - cx, 0, cx - R.r), Math.max(R.t - cy, 0, cy - R.b));
-      const far = (R) => Math.max(Math.hypot(R.l - cx, R.t - cy), Math.hypot(R.r - cx, R.t - cy), Math.hypot(R.l - cx, R.b - cy), Math.hypot(R.r - cx, R.b - cy));
-      const rs = sides.map(rect);
-      const Rmax = Math.max(far(rs[0]), far(rs[1]), (R0.b - R0.t) * 1.25) + 24;
-      return { cx, cy, w: R0.r - R0.l, h: R0.b - R0.t, Rmax, dNear: rs.map(near) };
-    }
-
-    function ring(r, a, w) {
-      if (a < 0.01 || r < 2) return;
-      const { cx, cy } = geo;
-      const g = ctx.createRadialGradient(cx, cy, r * 0.78, cx, cy, r);              // interior translúcido
-      g.addColorStop(0, 'rgba(229,37,56,0)'); g.addColorStop(1, 'rgba(229,37,56,' + (0.12 * a) + ')');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill();
-      ctx.save();                                                                     // anel com glow externo
-      ctx.shadowColor = 'rgba(255,51,74,.95)'; ctx.shadowBlur = 20 * dpr;
-      ctx.strokeStyle = 'rgba(255,60,82,' + (0.95 * a) + ')'; ctx.lineWidth = w;
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.stroke();
-      ctx.restore();
-      ctx.strokeStyle = 'rgba(255,222,226,' + (0.85 * a) + ')'; ctx.lineWidth = 1.2;  // fio brilhante interno
-      ctx.beginPath(); ctx.arc(cx, cy, r - w * 0.35, 0, TAU); ctx.stroke();
-    }
-    function drawFrame(time) {
-      if (!ctx || !geo) return;
-      const dt = Math.min(0.05, Math.max(0.001, time - lastT)); lastT = time;
-      const { cx, cy } = geo;
-      ctx.clearRect(-padX, -PAD, cw, ch);
-      ctx.lineCap = 'round';
-      S.rings.forEach((rg, i) => {
-        ring(rg.r, rg.a, 3.2 - i * 0.5);
-        if (rg.a > 0.2 && rg.r > 30 && (!small || Math.random() < 0.4)) {            // centelhas na frente da onda
-          for (let k = 0; k < (small ? 1 : 2); k++) {
-            const ang = Math.random() * TAU, sp = 20 + Math.random() * 60;
-            particles.spawn(cx + Math.cos(ang) * rg.r, cy + Math.sin(ang) * rg.r, Math.cos(ang) * sp, Math.sin(ang) * sp, 0.3 + Math.random() * 0.5, 0.8 + Math.random() * 1.5);
-          }
-        }
-      });
-      S.back.forEach((rg) => ring(rg.r, rg.a, 2.4));                                  // anéis que retornam ao centro
-      ring(S.pulse.r, S.pulse.a, 2.8);                                                // pulso menor (ápice) e pulso final
-      particles.step(dt); particles.draw(ctx);
-      drawBlooms(ctx, blooms, dt);
-    }
+    function finishPricingWave() { resetPricingWave(); wrap.classList.add('pw-done'); }
 
     function animatePricingWave() {
       if (running) return;
       running = true;
-      wrap.classList.add('pw-ready');
-      wrap.addEventListener('pointerdown', resetPricingWave, { once: true });          // interação do usuário encerra com segurança
-      wrap.addEventListener('keydown', resetPricingWave, { once: true });
-      if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
-      cv = makeCanvas('pwave'); wrap.appendChild(cv); ctx = cv.getContext('2d');
-      sizeCanvas(); geo = buildGeometry();
-      const g = geo;
-      plans.forEach((p) => gsap.set(p, { '--pw-angle': '0deg', '--pw-ring': 0, '--pw-fill': 0, '--pw-glow': 0, '--pw-peak': 0, '--pw-bg': 0,
-        '--pw-lift': '0px', '--pw-zoom': 0, '--pw-shine': '110%', '--pw-shineo': 0, '--pw-price': 0, '--pw-pglint': '110%', '--pw-btn': '110%', '--pw-ico': 0, '--pw-core': 0 }));
-      lastT = gsap.ticker.time;
-      gsap.ticker.add(drawFrame);
-      wave = gsap.timeline({ onComplete: resetPricingWave });
+      wrap.classList.remove('pw-done'); wrap.classList.add('pw-ready');
+      traces = plans.map(makeTrace);
+      plans.forEach((p) => { p.classList.add('pw-active'); gsap.set(p, { '--pw-ring': 0, '--pw-fill': 0, '--pw-glow': 0, '--pw-peak': 0, '--pw-bg': 0, '--pw-lift': '0px', '--pw-zoom': 0, '--pw-price': 0, '--pw-ico': 0 }); });
+      wave = gsap.timeline({ onComplete: finishPricingWave });
 
-      // card energizado: borda inteira, faixa, brilho radial, avanço em profundidade, preço, ícones e botão
-      const energize = (card, at) => {
-        wave.call(() => card.classList.add('pw-active'), null, at)
-          .to(card, { '--pw-angle': '360deg', duration: 0.8, ease: 'power2.inOut' }, at)
-          .to(card, { '--pw-ring': 1, duration: 0.2, ease: 'power1.out' }, at)
-          .to(card, { '--pw-fill': 1, duration: 0.35, ease: 'sine.out' }, at + 0.22)
-          .to(card, { '--pw-glow': 1, duration: 0.45, ease: 'power2.out' }, at)
-          .to(card, { '--pw-bg': 1, duration: 0.45, ease: 'power2.out' }, at + 0.04)
-          .to(card, { '--pw-lift': '-7px', '--pw-zoom': 1, duration: 0.5, ease: 'power3.out' }, at)
-          .to(card, { '--pw-shine': '-10%', duration: 0.7, ease: 'power1.inOut' }, at + 0.04)
-          .to(card, { '--pw-shineo': 1, duration: 0.1, ease: 'none' }, at + 0.04)
-          .to(card, { '--pw-shineo': 0, duration: 0.35, ease: 'power1.in' }, at + 0.45)
-          .to(card, { '--pw-price': 1, duration: 0.25, ease: 'power2.out' }, at + 0.1)           // preço: luz vermelha + leve ampliação
-          .to(card, { '--pw-price': 0.6, duration: 0.5, ease: 'sine.inOut' }, at + 0.38)
-          .to(card, { '--pw-pglint': '-10%', duration: 0.7, ease: 'power1.inOut' }, at + 0.12)  // reflexo prateado sobre o preço
-          .to(card, { '--pw-ico': 1, duration: 0.3, ease: 'power2.out' }, at + 0.15)            // ícones (checks) destacados
-          .to(card, { '--pw-ico': 0.4, duration: 0.5, ease: 'sine.inOut' }, at + 0.45)
-          .to(card, { '--pw-btn': '-10%', duration: 0.7, ease: 'power1.inOut' }, at + 0.25);
+      const LAP = small ? 0.6 : 0.75, STEP = small ? 0.5 : 0.55, T0 = 0.3;
+      const REST = { '--pw-bg': 0.12, '--pw-glow': 0.08 };
+      // Fase 1 — repouso: iluminação decorativa reduzida
+      traces.forEach((t, i) => { wave.to(t.base, { opacity: 0.2, duration: 0.3, ease: 'sine.out' }, 0).to(plans[i], REST, 0); });
+
+      // energização de um card: traço percorrendo o perímetro + luz interna + resposta 3D sem deslocar o layout
+      const energize = (i, at, lap, k) => {
+        const t = traces[i], card = plans[i];
+        wave.set([t.head, t.tail], { opacity: 1, strokeWidth: k > 1 ? 3.6 : 2.6 }, at)
+          .fromTo(t.head, { strokeDashoffset: 0.12 }, { strokeDashoffset: -1.3, duration: lap, ease: 'sine.inOut', immediateRender: false }, at)
+          .fromTo(t.tail, { strokeDashoffset: 0.42 }, { strokeDashoffset: -1.0, duration: lap, ease: 'sine.inOut', immediateRender: false }, at)
+          .to([t.head, t.tail], { opacity: 0, duration: 0.15 }, at + lap - 0.05)
+          .to(t.base, { opacity: 0.55 * Math.min(k, 1.3), duration: 0.25, ease: 'power1.out' }, at)
+          .to(card, { '--pw-bg': 0.75 * k, '--pw-glow': 0.5 * k, '--pw-lift': -5 * k + 'px', '--pw-zoom': k, '--pw-price': 0.5 * k, '--pw-ico': 0.5 * k, duration: 0.35, ease: 'power2.out' }, at)
+          .to(card, { '--pw-bg': 0.12, '--pw-glow': 0.08, '--pw-lift': '0px', '--pw-zoom': 0, '--pw-price': 0, '--pw-ico': 0, duration: 0.6, ease: 'sine.inOut' }, at + lap * 0.85)
+          .to(t.base, { opacity: 0.2, duration: 0.6, ease: 'sine.inOut' }, at + lap * 0.85);
       };
 
-      /* Fase 1 — acúmulo de energia no centro do Profissional (atrás do conteúdo) */
-      const EXP = 0.4, DUR = 1.15, EASE = 'power1.out';
-      wave.to(pro, { '--pw-core': 1, duration: 0.4, ease: 'power2.in' }, 0)
-        .to(pro, { '--pw-glow': 0.4, duration: 0.4, ease: 'power1.in' }, 0)
-        .call(() => pro.classList.add('pw-active'), null, 0);
+      // Fase 2 — energização individual: Essencial → Profissional → Enterprise
+      [0, 1, 2].forEach((i, n) => energize(i, T0 + n * STEP, LAP, 1));
 
-      /* Fase 2 — expansão: três anéis concêntricos com pequenos atrasos */
-      S.rings.forEach((rg, i) => {
-        const at = EXP + i * 0.14, d = DUR - i * 0.06;
-        wave.to(rg, { r: g.Rmax, duration: d, ease: EASE }, at)
-          .to(rg, { a: 1, duration: 0.14, ease: 'power1.out' }, at)
-          .to(rg, { a: 0, duration: 0.45, ease: 'power1.in' }, at + d - 0.42);
-      });
-      wave.call(() => blooms.push({ x: g.cx, y: g.cy, t: 0, dur: 0.6, r0: 10, r1: 90 }), null, EXP);
-      energize(pro, EXP);                                     // o Profissional permanece energizado durante toda a expansão
-      wave.to(pro, { '--pw-core': 0.25, duration: 0.5, ease: 'sine.out' }, EXP + 0.1);
-
-      /* Fase 3 — reação dos laterais exatamente quando a frente do primeiro anel os alcança */
-      sides.forEach((card, i) => {
-        const f = clamp(g.dNear[i] / g.Rmax, 0, 1);
-        const at = EXP + timeAtFraction(EASE, f) * DUR;
-        energize(card, at);
-        wave.call(() => {
-          const ang = Math.atan2((card.offsetTop + card.offsetHeight / 2) - g.cy, (card.offsetLeft + card.offsetWidth / 2) - g.cx);
-          const r = g.dNear[i];
-          blooms.push({ x: g.cx + Math.cos(ang) * r, y: g.cy + Math.sin(ang) * r, t: 0, dur: 0.5, r0: 8, r1: 56 });
-        }, null, at);
-      });
-
-      /* Fase 4 — ápice: três iluminados, Profissional com a maior intensidade; segundo pulso menor no centro */
-      const APEX = EXP + DUR + 0.05;
-      wave.to(plans, { '--pw-peak': 1, '--pw-price': 1, duration: 0.25, ease: 'power2.out' }, APEX)
-        .to(pro, { '--pw-peak': 1.5, '--pw-core': 1, duration: 0.25, ease: 'power2.out' }, APEX)
-        .fromTo(S.pulse, { r: 8, a: 0.95 }, { r: g.h * 0.5, a: 0, duration: 0.6, ease: 'power2.out', immediateRender: false }, APEX + 0.05);
-      const RETURN = APEX + 0.4;
-
-      /* Fase 5 — retorno: anéis voltam ao centro, laterais recolhem; Profissional recebe o pulso final */
-      S.back.forEach((rg, i) => {
-        wave.fromTo(rg, { r: g.Rmax * (0.88 - i * 0.18) }, { r: 0, duration: 0.8, ease: 'power2.in', immediateRender: false }, RETURN + i * 0.12)
-          .fromTo(rg, { a: 0 }, { a: 0.75, duration: 0.25, ease: 'power1.out', immediateRender: false }, RETURN + i * 0.12)
-          .to(rg, { a: 0, duration: 0.2, ease: 'power1.in' }, RETURN + i * 0.12 + 0.6);
-      });
-      sides.forEach((card) => {
-        wave.to(card, { '--pw-ring': 0, '--pw-fill': 0, '--pw-glow': 0, '--pw-peak': 0, '--pw-bg': 0, '--pw-price': 0, '--pw-ico': 0, '--pw-lift': '0px', '--pw-zoom': 0, duration: 0.8, ease: 'power2.inOut' }, RETURN);
-      });
-      wave.to(pro, { '--pw-core': 0.6, duration: 0.7, ease: 'power2.in' }, RETURN);
-      const FINAL = RETURN + 0.75;
-      wave.call(() => {
-          blooms.push({ x: g.cx, y: g.cy, t: 0, dur: 0.7, r0: 12, r1: Math.max(g.w, g.h) * 0.55 });
-          for (let q = 0; q < (small ? 8 : 24); q++) {
-            const ang = Math.random() * TAU, sp = 70 + Math.random() * 150;
-            particles.spawn(g.cx, g.cy, Math.cos(ang) * sp, Math.sin(ang) * sp, 0.5 + Math.random() * 0.6, 1 + Math.random() * 1.6);
-          }
-        }, null, FINAL)
-        .fromTo(S.pulse, { r: 14, a: 0.95 }, { r: Math.max(g.w, g.h) * 0.62, a: 0, duration: 0.65, ease: 'power2.out', immediateRender: false }, FINAL)
-        .to(pro, { '--pw-peak': 1.6, '--pw-core': 1, '--pw-bg': 1, duration: 0.16, ease: 'power2.out' }, FINAL)
-        .to(pro, { '--pw-ring': 0, '--pw-fill': 0, '--pw-glow': 0, '--pw-peak': 0, '--pw-bg': 0, '--pw-price': 0, '--pw-ico': 0, '--pw-core': 0, '--pw-lift': '0px', '--pw-zoom': 0, duration: 0.7, ease: 'power2.inOut' }, FINAL + 0.18);
+      // Fase 3 — os laterais reduzem a iluminação; segunda energização, mais marcante, no Profissional
+      const T3 = T0 + 2 * STEP + LAP * 0.9;
+      [0, 2].forEach((i) => wave.to(plans[i], { '--pw-bg': 0, '--pw-glow': 0, duration: 0.35, ease: 'sine.inOut' }, T3)
+        .to(traces[i].base, { opacity: 0, duration: 0.35 }, T3));
+      const proI = plans.indexOf(pro), LAP2 = small ? 0.75 : 0.85;
+      energize(proI, T3 + 0.05, LAP2, 1.5);
+      wave.to(pro, { '--pw-peak': 1, duration: 0.3, ease: 'power2.out' }, T3 + 0.05 + LAP2 * 0.6)
+        .to(traces[proI].base, { opacity: 0.8, duration: 0.2 }, T3 + 0.05 + LAP2 * 0.8)
+        .to({}, { duration: 0.1 }, T3 + 0.05 + LAP2);
     }
 
-    // ao entrar: espera a entrada (.reveal) dos cards e roda a onda; ao sair: encerra com segurança (cards no estilo original) e rearma
-    let enterCall = null;
+    // ao entrar: espera a entrada (.reveal) dos cards e roda a sequência; ao sair: encerra com segurança e rearma (cards no estilo original)
     presence(wrap, 0.25,
       () => { enterCall = gsap.delayedCall(0.7, animatePricingWave); },
-      () => { if (enterCall) { enterCall.kill(); enterCall = null; } if (running) resetPricingWave(); });
+      () => { if (enterCall) { enterCall.kill(); enterCall = null; } if (running) resetPricingWave(); wrap.classList.remove('pw-done'); });
   }
 })();

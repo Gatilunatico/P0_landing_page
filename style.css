@@ -42,7 +42,7 @@
 
 /* ===== Base ===== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 104px; overflow-x: clip; font-size: 125%; }
+html { scroll-behavior: smooth; scroll-padding-top: 104px; overflow-x: clip; font-size: 106.25%; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -562,10 +562,10 @@ html.intro-lock .hero .reveal { opacity: 1; transform: none; transition: none; }
 
 /* ===== Pacotes: EXPANSÃO DE ENERGIA (escopo: .plans.pw-ready; efeitos só durante a sequência: .pw-active) ===== */
 .plans.pw-ready .plan > :not(.badge) { position: relative; z-index: 1; }
-.plans.pw-ready .plan::before {                                /* contorno: arco luminoso que percorre a borda + preenchimento da borda inteira */
+.plans.pw-ready .plan::before {                                /* contorno: luz que acompanha a frente de energia ao longo da borda + preenchimento da borda inteira */
   content: ''; position: absolute; inset: -1px; z-index: 0; border-radius: inherit; padding: 2.5px; pointer-events: none;
   background:
-    conic-gradient(from var(--pw-angle, 0deg), transparent 0deg, color-mix(in srgb, var(--red) 70%, transparent) 60deg, var(--red-strong) 118deg, #ffd5da 124deg, transparent 126deg),
+    linear-gradient(var(--pw-dir, 90deg), transparent calc(var(--pw-bx, -50%) - 38%), color-mix(in srgb, var(--red) 65%, transparent) calc(var(--pw-bx, -50%) - 10%), var(--red-strong) calc(var(--pw-bx, -50%) - 1.5%), #ffd5da var(--pw-bx, -50%), transparent calc(var(--pw-bx, -50%) + 2.5%)),
     linear-gradient(color-mix(in srgb, var(--red-strong) calc(var(--pw-fill, 0) * 100%), transparent), color-mix(in srgb, var(--red-strong) calc(var(--pw-fill, 0) * 100%), transparent));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
@@ -612,7 +612,17 @@ html.intro-lock .hero .reveal { opacity: 1; transform: none; transition: none; }
 .plans.pw-ready .plan.pw-active .btn--ghost {
   border-color: color-mix(in srgb, var(--red-strong) calc(min(var(--pw-glow, 0), 1) * 100%), var(--border));
 }
-.pwave { position: absolute; pointer-events: none; z-index: 3; }
+.pw-trace { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
+.plans.pw-ready .plan > .pw-trace { position: absolute; z-index: 2; }                   /* vence a regra que põe os filhos do card em fluxo relativo */
+.pw-t { fill: none; stroke-linecap: round; }
+.pw-t--base { stroke: var(--red-strong); stroke-width: 1.5; opacity: 0; }
+.pw-t--tail { stroke: var(--red); stroke-width: 2.6; opacity: 0; }
+.pw-t--head { stroke: #ffd5da; stroke-width: 2.6; opacity: 0; filter: drop-shadow(0 0 3px var(--red-strong)); }
+/* estado final: Profissional destacado (contorno vermelho, luz inferior discreta, leve profundidade); fica até o visitante sair da seção */
+.plans.pw-done .plan--featured {
+  scale: 1.014; border-color: var(--red-strong); transition: scale .4s ease, box-shadow .4s ease;
+  box-shadow: 0 0 0 1px var(--red-strong), var(--shadow), 0 20px 30px -20px color-mix(in srgb, var(--red) 60%, transparent), inset 0 -34px 36px -32px color-mix(in srgb, var(--red) 30%, transparent);
+}
 
 /* ===== Navbar em tablet: sem rolagem horizontal entre 721 e 960px ===== */
 @media (min-width: 721px) and (max-width: 860px) {            /* estreito: mesmo comportamento do celular (links ocultos) */
