@@ -1,0 +1,58 @@
+/* =====================================================================================
+   SENTINELA — EXPERIÊNCIA INTEGRADA (SOC no radar + portais hexagonais)
+   Camada isolada e reversível: remova <link experience.css> e <script experience.js> do index.html para desfazer.
+   Todos os elementos são decorativos (pointer-events: none) e ficam atrás/dentro dos componentes existentes.
+   ===================================================================================== */
+:root { --pt-silver: rgba(184, 190, 199, .55); --pt-red: rgba(255, 51, 74, .92); }
+[data-theme="light"] { --pt-silver: rgba(30, 34, 46, .42); --pt-red: rgba(200, 16, 46, .82); }
+
+/* ---------- SOC: camada sobre o radar existente (os eventos exibidos são fictícios) ---------- */
+.soc { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.soc__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.soc-ring { fill: none; stroke: var(--silver); stroke-opacity: .32; stroke-width: .22; stroke-dasharray: .9 2.2; }
+.soc-tick { stroke: var(--silver); stroke-opacity: .5; stroke-width: .3; }
+.soc-nd { fill: var(--silver); fill-opacity: .8; }
+.soc-amb { fill: none; stroke: var(--silver); stroke-width: .25; }
+.soc-dot { fill: var(--red-strong); }
+.soc-pulse { fill: none; stroke: var(--red-strong); stroke-width: .42; }
+.soc-p2 { stroke-dasharray: 1.3 .8; }
+.soc-leader { fill: none; stroke: var(--red-strong); stroke-width: .3; stroke-opacity: .9; stroke-linejoin: round; }
+.soc-leadend { fill: var(--red-strong); }
+.soc-line { stroke: var(--silver); stroke-width: .32; stroke-linecap: round; }
+.soc-seg { fill: none; stroke: var(--silver); stroke-width: .42; stroke-dasharray: 3.2 2.1; stroke-linecap: round; }
+.soc-hex { fill: none; stroke: var(--silver); stroke-width: .5; stroke-linejoin: round; }
+.soc-flow { fill: none; stroke: var(--red-strong); stroke-width: .34; stroke-linecap: round; stroke-linejoin: round; }
+.soc-packet { fill: #fff; stroke: var(--red-strong); stroke-width: .25; }
+.soc-proc { fill: none; stroke: var(--silver); stroke-width: .42; stroke-dasharray: 1.4 1.8; stroke-linecap: round; }
+.soc-wave { fill: none; stroke-width: .55; }
+.soc-w1 { stroke: var(--silver); }
+.soc-w2 { stroke: var(--red-strong); }
+.soc__status {                                                    /* indicador de estado, abaixo do radar (não cobre título nem botões) */
+  position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; font: 600 .6rem/1 var(--font-head); letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+}
+.soc__led { width: 7px; height: 7px; border-radius: 50%; background: var(--silver); transition: background-color .2s, box-shadow .2s; }
+.soc__led.is-hot { background: var(--red-strong); box-shadow: 0 0 8px var(--red-strong); }
+
+/* ---------- PORTAIS HEXAGONAIS: no fundo das seções, atrás do conteúdo ---------- */
+#servicos, #roadmap, #agendar { position: relative; isolation: isolate; }
+.hexportal { position: absolute; z-index: -1; pointer-events: none; transform: translate(-50%, -50%); visibility: hidden; }
+.hexportal__svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.pt-s { fill: none; stroke: var(--pt-silver); stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.pt-r { fill: none; stroke: var(--pt-red); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.pt-vtx { fill: var(--pt-red); stroke: none; }
+.hexportal--soft .pt-s { stroke-opacity: .8; }
+.hexportal--soft .pt-r { stroke-width: 1.6; stroke-opacity: .75; }
+.hexportal--mid .pt-r { stroke-opacity: .9; }
+/* o portal "revela" a textura da seção seguinte e reforça a iluminação ambiental dos pacotes (variáveis conduzidas pelo scroll) */
+#roadmap::before, #roadmap::after { opacity: var(--pt-reveal, 1); }
+#pacotes::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: var(--pt-glow, 0);
+  background: radial-gradient(580px 470px at 50% 58%, color-mix(in srgb, var(--red) 34%, transparent), transparent 72%);
+}
+@media (max-width: 960px) { .hexportal { opacity: .85; } }
+@media (max-width: 720px) {
+  .soc-lite { display: none; }
+  .soc__status { font-size: .56rem; bottom: -20px; letter-spacing: .12em; }
+  .hexportal { opacity: .7; }
+}

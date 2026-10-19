@@ -1,0 +1,218 @@
+/* =====================================================================================
+   SENTINELA — FUNDOS FUTURISTAS (versão experimental)
+   Camadas decorativas estáticas: grids, circuitos, fluxos de dados, iluminação ambiental, vinhetas e granulação (sem movimento próprio).
+   Nada aqui altera componentes, textos, espaçamentos ou animações.
+   PARA REVERTER: remova a linha <link rel="stylesheet" href="backgrounds.css"> do index.html.
+   PARA AJUSTAR: edite os "tokens" abaixo (intensidade) ou os blocos por seção.
+   ===================================================================================== */
+
+/* ---------- tokens (mesma paleta: preto, grafite, vermelho, prata) ---------- */
+:root, [data-theme="dark"] {
+  /* cor-base de cada seção e cores de fronteira (as seções se fundem sem corte) */
+  --fx-hero: #07070a; --fx-serv: #0f0f14; --fx-road: #16161b; --fx-pack: #060608; --fx-integ: #15151a; --fx-cta: #050507;
+  --fx-b1: #0b0b0f; --fx-b2: #121217; --fx-b3: #0f0f13; --fx-b4: #0e0e12; --fx-b5: #0d0d10; --fx-b6: var(--bg);
+  /* linhas, nós e trilhas (prata, baixa opacidade) */
+  --fx-line: rgba(184, 190, 199, .07); --fx-line2: rgba(184, 190, 199, .13); --fx-dot: rgba(184, 190, 199, .30);
+  --fx-trace: rgba(184, 190, 199, .17); --fx-red-trace: rgba(229, 37, 56, .58);
+  /* iluminação vermelha ambiente e vinheta */
+  --fx-glow: .22; --fx-vig: rgba(0, 0, 0, .55);
+}
+[data-theme="light"] {
+  --fx-hero: #f6f7f9; --fx-serv: #eceef2; --fx-road: #dcdfe6; --fx-pack: #f4f5f8; --fx-integ: #dcdfe6; --fx-cta: #f2f3f6;
+  --fx-b1: #f1f2f6; --fx-b2: #e4e6ec; --fx-b3: #e9ebf0; --fx-b4: #e8eaef; --fx-b5: #e8eaef; --fx-b6: var(--bg);
+  --fx-line: rgba(20, 24, 34, .07); --fx-line2: rgba(20, 24, 34, .12); --fx-dot: rgba(20, 24, 34, .26);
+  --fx-trace: rgba(30, 34, 46, .17); --fx-red-trace: rgba(200, 16, 46, .52);
+  --fx-glow: .11; --fx-vig: rgba(20, 24, 34, .11);
+}
+/* imagens leves embutidas (SVG): usadas como máscara, então a cor segue o tema */
+:root {
+  --fx-circ: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 700' width='1000' height='700'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.1' stroke-linejoin='miter'%3E%3Cpolyline points='460,380 460,280 520,280 520,100 560,100'/%3E%3Ccircle cx='560' cy='100' r='3.4'/%3E%3Ccircle cx='460' cy='380' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='460,380 460,280 520,280 520,100 560,100' transform='translate(7 7)'/%3E%3Crect x='557' y='97' width='7' height='7'/%3E%3Cpolyline points='780,460 680,460 680,320 540,320 540,280'/%3E%3Ccircle cx='540' cy='280' r='3.4'/%3E%3Ccircle cx='780' cy='460' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='780,460 680,460 680,320 540,320 540,280' transform='translate(7 7)'/%3E%3Crect x='537' y='277' width='7' height='7'/%3E%3Cpolyline points='80,320 40,320 40,500'/%3E%3Ccircle cx='40' cy='500' r='3.4'/%3E%3Ccircle cx='80' cy='320' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='300,640 300,660 220,660'/%3E%3Ccircle cx='220' cy='660' r='3.4'/%3E%3Ccircle cx='300' cy='640' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='217' y='657' width='7' height='7'/%3E%3Cpolyline points='560,120 460,120 460,80 400,80'/%3E%3Ccircle cx='400' cy='80' r='3.4'/%3E%3Ccircle cx='560' cy='120' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='397' y='77' width='7' height='7'/%3E%3Cpolyline points='400,480 220,480 220,660 140,660 180,660'/%3E%3Ccircle cx='180' cy='660' r='3.4'/%3E%3Ccircle cx='400' cy='480' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='177' y='657' width='7' height='7'/%3E%3Cpolyline points='280,120 220,120 220,40 40,40 40,140'/%3E%3Ccircle cx='40' cy='140' r='3.4'/%3E%3Ccircle cx='280' cy='120' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='280,120 220,120 220,40 40,40 40,140' transform='translate(7 7)'/%3E%3Cpolyline points='240,220 240,140 180,140 180,40 140,40 140,100'/%3E%3Ccircle cx='140' cy='100' r='3.4'/%3E%3Ccircle cx='240' cy='220' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='240,220 240,140 180,140 180,40 140,40 140,100' transform='translate(7 7)'/%3E%3Cpolyline points='340,240 280,240 280,280'/%3E%3Ccircle cx='280' cy='280' r='3.4'/%3E%3Ccircle cx='340' cy='240' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='900,340 900,280 820,280 820,140 640,140'/%3E%3Ccircle cx='640' cy='140' r='3.4'/%3E%3Ccircle cx='900' cy='340' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='900,340 900,280 820,280 820,140 640,140' transform='translate(7 7)'/%3E%3Cpolyline points='540,460 400,460 400,360 360,360 360,400'/%3E%3Ccircle cx='360' cy='400' r='3.4'/%3E%3Ccircle cx='540' cy='460' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='540,460 400,460 400,360 360,360 360,400' transform='translate(7 7)'/%3E%3Cpolyline points='280,540 280,400 100,400 100,340'/%3E%3Ccircle cx='100' cy='340' r='3.4'/%3E%3Ccircle cx='280' cy='540' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='600,100 420,100 420,140 520,140'/%3E%3Ccircle cx='520' cy='140' r='3.4'/%3E%3Ccircle cx='600' cy='100' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='600,100 420,100 420,140 520,140' transform='translate(7 7)'/%3E%3Crect x='517' y='137' width='7' height='7'/%3E%3Cpolyline points='300,360 300,280 400,280'/%3E%3Ccircle cx='400' cy='280' r='3.4'/%3E%3Ccircle cx='300' cy='360' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='580,140 680,140 680,320'/%3E%3Ccircle cx='680' cy='320' r='3.4'/%3E%3Ccircle cx='580' cy='140' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='677' y='317' width='7' height='7'/%3E%3Cpolyline points='620,340 620,280 660,280 660,420'/%3E%3Ccircle cx='660' cy='420' r='3.4'/%3E%3Ccircle cx='620' cy='340' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='700,460 700,380 880,380 880,420'/%3E%3Ccircle cx='880' cy='420' r='3.4'/%3E%3Ccircle cx='700' cy='460' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='877' y='417' width='7' height='7'/%3E%3Cpolyline points='500,60 500,40 360,40 180,40'/%3E%3Ccircle cx='180' cy='40' r='3.4'/%3E%3Ccircle cx='500' cy='60' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='700,280 700,380 600,380 600,240 520,240 520,140'/%3E%3Ccircle cx='520' cy='140' r='3.4'/%3E%3Ccircle cx='700' cy='280' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='700,280 700,380 600,380 600,240 520,240 520,140' transform='translate(7 7)'/%3E%3Cpolyline points='500,420 500,460 420,460 420,280'/%3E%3Ccircle cx='420' cy='280' r='3.4'/%3E%3Ccircle cx='500' cy='420' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='360,600 440,600 440,660 500,660'/%3E%3Ccircle cx='500' cy='660' r='3.4'/%3E%3Ccircle cx='360' cy='600' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='240,180 180,180 180,240 100,240'/%3E%3Ccircle cx='100' cy='240' r='3.4'/%3E%3Ccircle cx='240' cy='180' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='300,160 360,160 360,260 540,260'/%3E%3Ccircle cx='540' cy='260' r='3.4'/%3E%3Ccircle cx='300' cy='160' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='600,240 600,100 780,100 780,240'/%3E%3Ccircle cx='780' cy='240' r='3.4'/%3E%3Ccircle cx='600' cy='240' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='600,240 600,100 780,100 780,240' transform='translate(7 7)'/%3E%3Cpolyline points='80,140 40,140 40,80'/%3E%3Ccircle cx='40' cy='80' r='3.4'/%3E%3Ccircle cx='80' cy='140' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='37' y='77' width='7' height='7'/%3E%3Cpolyline points='160,380 160,340 220,340 220,260'/%3E%3Ccircle cx='220' cy='260' r='3.4'/%3E%3Ccircle cx='160' cy='380' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='540,80 400,80 400,40 440,40'/%3E%3Ccircle cx='440' cy='40' r='3.4'/%3E%3Ccircle cx='540' cy='80' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='180,320 180,420 280,420'/%3E%3Ccircle cx='280' cy='420' r='3.4'/%3E%3Ccircle cx='180' cy='320' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='277' y='417' width='7' height='7'/%3E%3Cpolyline points='700,540 700,480 600,480'/%3E%3Ccircle cx='600' cy='480' r='3.4'/%3E%3Ccircle cx='700' cy='540' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='760,240 760,160 800,160'/%3E%3Ccircle cx='800' cy='160' r='3.4'/%3E%3Ccircle cx='760' cy='240' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='760,240 760,160 800,160' transform='translate(7 7)'/%3E%3Cpolyline points='300,600 200,600 200,660'/%3E%3Ccircle cx='200' cy='660' r='3.4'/%3E%3Ccircle cx='300' cy='600' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='480,640 480,660 380,660 520,660 520,480'/%3E%3Ccircle cx='520' cy='480' r='3.4'/%3E%3Ccircle cx='480' cy='640' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='560,240 620,240 620,300 760,300 760,360 620,360'/%3E%3Ccircle cx='620' cy='360' r='3.4'/%3E%3Ccircle cx='560' cy='240' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='80,620 80,480 40,480 40,300 80,300'/%3E%3Ccircle cx='80' cy='300' r='3.4'/%3E%3Ccircle cx='80' cy='620' r='1.8' fill='%23000' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-circ-red: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 700' width='1000' height='700'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.6' stroke-linejoin='miter'%3E%3Cpolyline points='540,260 540,300 640,300 640,260'/%3E%3Ccircle cx='640' cy='260' r='3.4'/%3E%3Ccircle cx='540' cy='260' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='540,260 540,300 640,300 640,260' transform='translate(7 7)'/%3E%3Cpolyline points='260,260 260,400 80,400 80,300'/%3E%3Ccircle cx='80' cy='300' r='3.4'/%3E%3Ccircle cx='260' cy='260' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='260,260 260,400 80,400 80,300' transform='translate(7 7)'/%3E%3Cpolyline points='660,460 660,640 740,640 740,500 840,500 840,360'/%3E%3Ccircle cx='840' cy='360' r='3.4'/%3E%3Ccircle cx='660' cy='460' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='580,440 620,440 620,500 680,500 680,540 740,540'/%3E%3Ccircle cx='740' cy='540' r='3.4'/%3E%3Ccircle cx='580' cy='440' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='300,420 480,420 480,380 580,380'/%3E%3Ccircle cx='580' cy='380' r='3.4'/%3E%3Ccircle cx='300' cy='420' r='1.8' fill='%23000' stroke='none'/%3E%3Crect x='577' y='377' width='7' height='7'/%3E%3Cpolyline points='200,600 200,420 380,420'/%3E%3Ccircle cx='380' cy='420' r='3.4'/%3E%3Ccircle cx='200' cy='600' r='1.8' fill='%23000' stroke='none'/%3E%3Cpolyline points='200,600 200,420 380,420' transform='translate(7 7)'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-flow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 800' width='1600' height='800'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round'%3E%3Cpath d='M-60 488 C196 488 253 630 508 630 C782 630 843 604 1117 604 C1389 604 1449 262 1721 262' stroke-width='1'/%3E%3Ccircle cx='508' cy='630' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='1117' cy='604' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 599 C151 599 198 384 410 384 C613 384 658 537 861 537 C1128 537 1188 541 1455 541' stroke-width='1'/%3E%3Ccircle cx='410' cy='384' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='861' cy='537' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 453 C130 453 172 317 363 317 C577 317 624 653 839 653 C1096 653 1154 290 1412 290' stroke-width='1'/%3E%3Ccircle cx='363' cy='317' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='839' cy='653' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 140 C185 140 239 -39 483 -39 C673 -39 715 318 904 318 C1112 318 1158 3 1366 3' stroke-width='1'/%3E%3Ccircle cx='483' cy='-39' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='904' cy='318' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 668 C155 668 203 890 418 890 C655 890 708 753 946 753 C1153 753 1199 880 1407 880' stroke-width='1.4'/%3E%3Ccircle cx='418' cy='890' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='946' cy='753' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 182 C216 182 277 126 553 126 C744 126 786 141 977 141 C1251 141 1311 68 1584 68' stroke-width='1'/%3E%3Ccircle cx='553' cy='126' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='977' cy='141' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 257 C183 257 237 19 481 19 C731 19 786 179 1036 179 C1253 179 1301 410 1518 410' stroke-width='1'/%3E%3Ccircle cx='481' cy='19' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='1036' cy='179' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 541 C146 541 191 528 397 528 C602 528 647 424 852 424 C1126 424 1186 757 1460 757' stroke-width='1'/%3E%3Ccircle cx='397' cy='528' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='852' cy='424' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 648 C131 648 173 786 364 786 C586 786 635 686 857 686 C1047 686 1089 431 1279 431' stroke-width='1'/%3E%3Ccircle cx='364' cy='786' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='857' cy='686' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 489 C215 489 276 306 551 306 C762 306 809 642 1020 642 C1251 642 1302 495 1533 495' stroke-width='1.4'/%3E%3Ccircle cx='551' cy='306' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='1020' cy='642' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 221 C171 221 222 264 453 264 C712 264 769 157 1029 157 C1244 157 1292 188 1508 188' stroke-width='1'/%3E%3Ccircle cx='453' cy='264' r='2.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='1029' cy='157' r='2.6' fill='%23000' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-flow-red: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 800' width='1600' height='800'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round'%3E%3Cpath d='M-60 416 C202 416 260 637 521 637 C736 637 784 544 999 544 C1252 544 1308 493 1560 493' stroke-width='2' stroke-dasharray='54 410' stroke-dashoffset='56'/%3E%3Ccircle cx='521' cy='637' r='3.4' fill='%23000' stroke='none'/%3E%3Ccircle cx='999' cy='544' r='3.4' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 701 C151 701 198 852 410 852 C637 852 687 873 914 873 C1175 873 1233 768 1494 768' stroke-width='2' stroke-dasharray='54 410' stroke-dashoffset='350'/%3E%3Ccircle cx='410' cy='852' r='3.4' fill='%23000' stroke='none'/%3E%3Ccircle cx='914' cy='873' r='3.4' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 721 C165 721 215 960 440 960 C635 960 678 871 873 871 C1141 871 1200 553 1468 553' stroke-width='2' stroke-dasharray='54 410' stroke-dashoffset='361'/%3E%3Ccircle cx='440' cy='960' r='3.4' fill='%23000' stroke='none'/%3E%3Ccircle cx='873' cy='871' r='3.4' fill='%23000' stroke='none'/%3E%3Cpath d='M-60 424 C201 424 259 513 520 513 C739 513 788 243 1007 243 C1260 243 1316 217 1570 217' stroke-width='2' stroke-dasharray='54 410' stroke-dashoffset='209'/%3E%3Ccircle cx='520' cy='513' r='3.4' fill='%23000' stroke='none'/%3E%3Ccircle cx='1007' cy='243' r='3.4' fill='%23000' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- camadas decorativas: sempre atrás do conteúdo, sem capturar cliques ---------- */
+.hero, #servicos, #pacotes, #agendar { isolation: isolate; }
+#servicos, #pacotes { position: relative; }
+#servicos, #roadmap, #pacotes, #integracoes { overflow: clip; }          /* camadas decorativas nunca vazam para os lados (sem rolagem horizontal; não cria contêiner de rolagem, o sticky segue funcionando) */
+#roadmap, #integracoes { border-block-color: transparent; }          /* sem linhas duras entre seções */
+.hero::before, .hero::after,
+#servicos::before, #servicos::after, #roadmap::before, #roadmap::after,
+#pacotes::before, #integracoes::before, #integracoes::after, #agendar::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+}
+
+/* ---------- HERO: grid técnico refinado + luz vermelha junto ao radar + vinheta ---------- */
+.hero::before {                                                      /* refina o grid existente (não cria outro) */
+  inset: 0; opacity: 1;
+  background:
+    radial-gradient(circle at center, var(--fx-dot) 0 1.1px, transparent 1.7px) 36px 36px / 72px 72px,   /* interseções */
+    linear-gradient(var(--fx-line2) 1px, transparent 1px) 0 0 / 288px 288px,                              /* linhas principais */
+    linear-gradient(90deg, var(--fx-line2) 1px, transparent 1px) 0 0 / 288px 288px,
+    linear-gradient(var(--fx-line) 1px, transparent 1px) 0 0 / 72px 72px,                                 /* linhas finas */
+    linear-gradient(90deg, var(--fx-line) 1px, transparent 1px) 0 0 / 72px 72px;
+  -webkit-mask-image: radial-gradient(ellipse 78% 88% at 66% 42%, #000 14%, rgba(0, 0, 0, .55) 46%, transparent 84%);
+          mask-image: radial-gradient(ellipse 78% 88% at 66% 42%, #000 14%, rgba(0, 0, 0, .55) 46%, transparent 84%);
+}
+.hero::after {
+  inset: 0;
+  background:
+    radial-gradient(560px 470px at 78% 42%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 100%), transparent), transparent 70%),   /* radar */
+    radial-gradient(ellipse 125% 95% at 50% 42%, transparent 56%, var(--fx-vig) 100%),                                                  /* vinheta */
+    linear-gradient(to bottom, transparent calc(100% - 200px), var(--fx-b1) 100%),                                                     /* transição → serviços */
+    var(--fx-grain);
+}
+
+/* ---------- SERVIÇOS: grafite escuro + fluxos de dados nos espaços vazios ---------- */
+#servicos {
+  background:
+    linear-gradient(to bottom, var(--fx-b2) 0, transparent 170px),
+    linear-gradient(to top, var(--fx-b3) 0, transparent 170px),
+    radial-gradient(520px 380px at 94% 14%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 45%), transparent), transparent 72%),
+    radial-gradient(ellipse 125% 100% at 50% 50%, transparent 58%, var(--fx-vig) 100%),
+    var(--fx-grain),
+    var(--fx-serv);
+}
+#servicos::before {                                                  /* linhas prateadas (curvas suaves, assimétricas) */
+  inset: -40px -70px; background: var(--fx-trace);
+  -webkit-mask-image: var(--fx-flow), linear-gradient(180deg, rgba(0, 0, 0, .3) 0, rgba(0, 0, 0, .3) 18%, #000 34%, #000 100%);
+          mask-image: var(--fx-flow), linear-gradient(180deg, rgba(0, 0, 0, .3) 0, rgba(0, 0, 0, .3) 18%, #000 34%, #000 100%);
+  -webkit-mask-size: cover, 100% 100%; mask-size: cover, 100% 100%;
+  -webkit-mask-repeat: no-repeat, no-repeat; mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-position: 30% 50%, 0 0; mask-position: 30% 50%, 0 0;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+#servicos::after {                                                   /* alguns segmentos vermelhos (pacotes de dados) */
+  inset: -40px -70px; background: var(--fx-red-trace);
+  -webkit-mask-image: var(--fx-flow-red), linear-gradient(180deg, rgba(0, 0, 0, .3) 0, rgba(0, 0, 0, .3) 18%, #000 34%, #000 100%);
+          mask-image: var(--fx-flow-red), linear-gradient(180deg, rgba(0, 0, 0, .3) 0, rgba(0, 0, 0, .3) 18%, #000 34%, #000 100%);
+  -webkit-mask-size: cover, 100% 100%; mask-size: cover, 100% 100%;
+  -webkit-mask-repeat: no-repeat, no-repeat; mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-position: 30% 50%, 0 0; mask-position: 30% 50%, 0 0;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+
+/* ---------- PROCESSO: placa de circuitos (trilhas em 90°, nós, segmentos vermelhos discretos) ---------- */
+#roadmap {
+  background:
+    linear-gradient(to bottom, var(--fx-b1) 0, transparent 170px),
+    linear-gradient(to top, var(--fx-b2) 0, transparent 170px),
+    radial-gradient(480px 340px at 6% 88%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 40%), transparent), transparent 72%),
+    radial-gradient(ellipse 125% 100% at 50% 50%, transparent 56%, var(--fx-vig) 100%),
+    var(--fx-grain),
+    var(--fx-road);
+}
+#roadmap::before {                                                   /* sobrescreve a textura de código anterior */
+  inset: 0; opacity: 1; background: var(--fx-trace);
+  -webkit-mask-image: var(--fx-circ), linear-gradient(180deg, transparent 0, #000 26%, #000 74%, transparent 100%);
+          mask-image: var(--fx-circ), linear-gradient(180deg, transparent 0, #000 26%, #000 74%, transparent 100%);
+  -webkit-mask-size: 1000px 700px, 100% 100%; mask-size: 1000px 700px, 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat; mask-repeat: repeat, no-repeat;
+  -webkit-mask-position: 0 0, 0 0; mask-position: 0 0, 0 0;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+#roadmap::after {
+  inset: 0; background: var(--fx-red-trace);
+  -webkit-mask-image: var(--fx-circ-red), linear-gradient(180deg, transparent 0, #000 30%, #000 70%, transparent 100%);
+          mask-image: var(--fx-circ-red), linear-gradient(180deg, transparent 0, #000 30%, #000 70%, transparent 100%);
+  -webkit-mask-size: 1000px 700px, 100% 100%; mask-size: 1000px 700px, 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat; mask-repeat: repeat, no-repeat;
+  -webkit-mask-position: 0 0, 0 0; mask-position: 0 0, 0 0;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+
+/* ---------- PACOTES: iluminação ambiental vermelha atrás do Profissional ---------- */
+#pacotes {
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--red) 55%, transparent) 50%, transparent) 50% 0 / min(720px, 78%) 1px no-repeat,   /* divisória estratégica */
+    linear-gradient(to bottom, var(--fx-b3) 0, transparent 170px),
+    linear-gradient(to top, var(--fx-b4) 0, transparent 170px),
+    radial-gradient(620px 500px at 50% 58%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 165%), transparent), color-mix(in srgb, var(--red) calc(var(--fx-glow) * 55%), transparent) 46%, transparent 76%),
+    radial-gradient(ellipse 85% 60% at 50% 62%, color-mix(in srgb, var(--fx-integ) 85%, transparent), transparent 80%),
+    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 52%, var(--fx-vig) 100%),
+    radial-gradient(circle, var(--fx-dot) 0 .7px, transparent 1.1px) 0 0 / 34px 34px,
+    var(--fx-grain),
+    var(--fx-pack);
+}
+#pacotes::before {                                                   /* textura tecnológica muito discreta: nós esparsos nas bordas */
+  inset: 0; opacity: .5; background: var(--fx-trace);
+  -webkit-mask-image: var(--fx-circ), linear-gradient(90deg, #000 0, transparent 26%, transparent 74%, #000 100%);
+          mask-image: var(--fx-circ), linear-gradient(90deg, #000 0, transparent 26%, transparent 74%, #000 100%);
+  -webkit-mask-size: 1000px 700px, 100% 100%; mask-size: 1000px 700px, 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat; mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+
+/* ---------- MONTE SUA COMBINAÇÃO: grid técnico + fluxos + luz localizada ---------- */
+#integracoes {
+  background:
+    linear-gradient(to bottom, var(--fx-b4) 0, transparent 170px),
+    linear-gradient(to top, var(--fx-b5) 0, transparent 170px),
+    radial-gradient(460px 360px at 3% 22%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 55%), transparent), transparent 72%),
+    radial-gradient(460px 360px at 97% 82%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 45%), transparent), transparent 72%),
+    radial-gradient(ellipse 125% 100% at 50% 50%, transparent 56%, var(--fx-vig) 100%),
+    radial-gradient(circle at center, var(--fx-dot) 0 1px, transparent 1.6px) 28px 28px / 56px 56px,
+    linear-gradient(var(--fx-line) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, var(--fx-line) 1px, transparent 1px) 0 0 / 56px 56px,
+    var(--fx-grain),
+    var(--fx-integ);
+}
+#integracoes::before {
+  inset: -30px -60px; background: var(--fx-trace);
+  -webkit-mask-image: var(--fx-flow), linear-gradient(180deg, rgba(0, 0, 0, .25) 0, rgba(0, 0, 0, .25) 16%, #000 32%, #000 100%);
+          mask-image: var(--fx-flow), linear-gradient(180deg, rgba(0, 0, 0, .25) 0, rgba(0, 0, 0, .25) 16%, #000 32%, #000 100%);
+  -webkit-mask-size: cover, 100% 100%; mask-size: cover, 100% 100%;
+  -webkit-mask-repeat: no-repeat, no-repeat; mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-position: 70% 40%, 0 0; mask-position: 70% 40%, 0 0;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  opacity: .8;
+}
+#integracoes::after {
+  inset: -30px -60px; background: var(--fx-red-trace);
+  -webkit-mask-image: var(--fx-flow-red), linear-gradient(180deg, rgba(0, 0, 0, .25) 0, rgba(0, 0, 0, .25) 16%, #000 32%, #000 100%);
+          mask-image: var(--fx-flow-red), linear-gradient(180deg, rgba(0, 0, 0, .25) 0, rgba(0, 0, 0, .25) 16%, #000 32%, #000 100%);
+  -webkit-mask-size: cover, 100% 100%; mask-size: cover, 100% 100%;
+  -webkit-mask-repeat: no-repeat, no-repeat; mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-position: 70% 40%, 0 0; mask-position: 70% 40%, 0 0;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+
+/* ---------- CONTATO: finalização limpa (poucos elementos, grid quase imperceptível) ---------- */
+#agendar {
+  background:
+    linear-gradient(to bottom, var(--fx-b5) 0, transparent 150px),
+    linear-gradient(to top, var(--fx-b6) 0, transparent 120px),
+    radial-gradient(ellipse 125% 100% at 50% 50%, transparent 54%, var(--fx-vig) 100%),
+    linear-gradient(color-mix(in srgb, var(--fx-line) 55%, transparent) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(90deg, color-mix(in srgb, var(--fx-line) 55%, transparent) 1px, transparent 1px) 0 0 / 64px 64px,
+    var(--fx-grain),
+    var(--fx-cta);
+}
+#agendar::before {                                                   /* refina o brilho vermelho existente: mais suave */
+  inset: 0;
+  background:
+    radial-gradient(660px 400px at 12% 26%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 34%), transparent), transparent 70%),
+    radial-gradient(520px 320px at 94% 92%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 18%), transparent), transparent 72%);
+}
+
+/* ---------- RODAPÉ: minimalista (apenas linha superior mais sutil) ---------- */
+.footer { border-top-color: color-mix(in srgb, var(--border) 55%, transparent); }
+
+
+/* ---------- telas menores: menos densidade, efeitos simplificados ---------- */
+@media (max-width: 960px) {
+  .hero::after { background:
+    radial-gradient(420px 380px at 50% 24%, color-mix(in srgb, var(--red) calc(var(--fx-glow) * 100%), transparent), transparent 70%),
+    radial-gradient(ellipse 140% 95% at 50% 40%, transparent 54%, var(--fx-vig) 100%),
+    linear-gradient(to bottom, transparent calc(100% - 160px), var(--fx-b1) 100%),
+    var(--fx-grain); }
+}
+@media (max-width: 720px) {
+  .hero::before { background-size: 110px 110px, 440px 440px, 440px 440px, 110px 110px, 110px 110px; background-position: 55px 55px, 0 0, 0 0, 0 0, 0 0; }
+  #roadmap::before, #roadmap::after, #pacotes::before { -webkit-mask-size: 1500px 1050px, 100% 100%; mask-size: 1500px 1050px, 100% 100%; }
+  #servicos::before, #servicos::after, #integracoes::before, #integracoes::after { opacity: .6; }
+  #integracoes { background-size: auto, auto, auto, auto, auto, 84px 84px, 84px 84px, 84px 84px, auto, auto; }
+  #pacotes { background-size: min(720px, 78%) 1px, auto, auto, auto, auto, auto, 48px 48px, auto, auto; }
+}
