@@ -23,16 +23,13 @@
     } catch (e) {}
   </script>
   <script>
-    // Introdução cinematográfica: só na 1ª visita da sessão, nunca com "reduzir movimento".
-    // ?intro=1 força a reexibição. Se algo falhar, __introRelease() libera a página.
+    // Introdução cinematográfica: executa a cada carregamento/recarregamento da página, nunca com "reduzir movimento".
+    // Se algo falhar, __introRelease() libera a página.
     (function () {
-      var KEY = 'sentinela-intro-seen', r = document.documentElement;
+      var r = document.documentElement;
       try {
-        var force = /[?&]intro=1(&|$)/.test(location.search);
         var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var seen = false;
-        try { seen = sessionStorage.getItem(KEY) === '1'; sessionStorage.setItem(KEY, '1'); } catch (e) {}
-        if (!reduce && (force || !seen)) {
+        if (!reduce) {
           r.classList.add('intro-lock');
           window.__introRelease = function () {
             r.classList.remove('intro-lock');
