@@ -331,6 +331,9 @@ input.invalid, select.invalid { border-color: var(--red); }
   .logo span { display: none; }
   .target__label { font-size: .64rem; padding: 4px 8px; }
 }
+@media (max-width: 520px) {                              /* rótulos do radar centralizados sob o ponto: nunca ultrapassam a tela */
+  .target--r .target__label, .target--l .target__label { left: 50%; right: auto; top: 16px; transform: translateX(-50%); max-width: 112px; white-space: normal; text-align: center; line-height: 1.2; border-radius: 12px; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }

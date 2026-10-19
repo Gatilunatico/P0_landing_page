@@ -318,3 +318,10 @@
 .cb-ready.is-scan::after { animation: cb-ready-scan .7s ease-out 1 both; }
 @keyframes cb-ready-scan { 0% { left: -35%; opacity: 0; } 20% { opacity: 1; } 100% { left: 110%; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .cb-ready.is-scan::after { animation: none; } }
+
+/* ---------- Celular ---------- */
+@media (max-width: 520px) {
+  .incident { font-size: .78rem; }
+  .incident__inner { gap: 2px 10px; padding-top: 7px; padding-bottom: 7px; line-height: 1.35; }
+  .incident__cta { padding: 4px 0; }
+}
