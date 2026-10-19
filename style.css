@@ -42,7 +42,7 @@
 
 /* ===== Base ===== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 104px; overflow-x: clip; font-size: 106.25%; }
+html { scroll-behavior: smooth; scroll-padding-top: 104px; overflow-x: clip; font-size: 100%; }
 body {
   background: var(--bg);
   color: var(--text);
